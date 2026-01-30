@@ -1,20 +1,29 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, use } from "react";
 export default function HomePage() {
   const [companyName, setCompanyName] = useState("");
   const [position, setPosition] = useState("");
   const [status, setStatus] = useState("applied"); // Default to "applied"
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
-  const [applications, setApplications] = useState([]);
-const [editingApplicationId, setEditingApplicationId] = useState(null)
+  const [editingApplicationId, setEditingApplicationId] = useState(null);
+  const [applications, setApplications] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("job-apps");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
 
+  useEffect(() => {
+    localStorage.setItem("job-apps", JSON.stringify(applications));
+  }, [applications]);
 
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent page refresh
 
     // const newApplication = {
-    //   id: crypto.randomUUID(), 
+    //   id: crypto.randomUUID(),
     //   company: companyName,
     //   position: position,
     //   status: status,
@@ -24,23 +33,23 @@ const [editingApplicationId, setEditingApplicationId] = useState(null)
 
     //  setApplications([...applications, newApplication]);
 
-const applicationData = {
-  id: editingApplicationId ? editingApplicationId : crypto.randomUUID(),
-  company: companyName,
-  position: position,
-  status: status,
-  date: date,
-  notes: notes,
-};
+    const applicationData = {
+      id: editingApplicationId ? editingApplicationId : crypto.randomUUID(),
+      company: companyName,
+      position: position,
+      status: status,
+      date: date,
+      notes: notes,
+    };
 
-if (editingApplicationId){
-  const updateList = applications.map( app => app.id === editingApplicationId ? applicationData : app);
-  setApplications(updateList);
-} else {
-  setApplications([...applications, applicationData]);
-}
-
-   
+    if (editingApplicationId) {
+      const updateList = applications.map((app) =>
+        app.id === editingApplicationId ? applicationData : app,
+      );
+      setApplications(updateList);
+    } else {
+      setApplications([...applications, applicationData]);
+    }
 
     // Clear form fields after submission
     setCompanyName("");
@@ -52,7 +61,7 @@ if (editingApplicationId){
 
   const handleDelete = (id) => {
     const updatedApplications = applications.filter(
-      (application) => application.id !== id
+      (application) => application.id !== id,
     );
     setApplications(updatedApplications);
   };
@@ -66,15 +75,15 @@ if (editingApplicationId){
     setStatus(app.status);
     setDate(app.date);
     setNotes(app.notes);
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <h1>Job Application Tracker</h1>
+        <h1 className="text-3xl font-bold mb-4">Job Application Tracker</h1>
 
-        <form onSubmit={handleSubmit}>
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-6 mb-8">
+          <div className="space-y-1">
             <label htmlFor="companyname">Company Name: </label>
             <input
               type="text"
@@ -82,10 +91,11 @@ if (editingApplicationId){
               id="companyname"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
 
-          <div>
+          <div className="space-y-1">
             <label htmlFor="position">Position:</label>
             <input
               type="text"
@@ -93,39 +103,49 @@ if (editingApplicationId){
               id="position"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
-          <div>
+          <div className="space-y-1">
             <label htmlFor="status">Status:</label>
             <select
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
             >
               <option value="applied">Applied</option>
               <option value="interview">Interview</option>
               <option value="rejected"> Rejected</option>
+            <option value="offer">Offer</option>
             </select>
           </div>
-          <div>
+          <div className="space-y-1">
             <label htmlFor="date">Date Applied:</label>
             <input
               type="date"
+              className="w-full border border-gray-300 rounded-md p-2"
               id="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
           </div>
-          <div>
+          <div className="space-y-1 mb-4">
             <label htmlFor="notes">Notes:</label>
             <textarea
+              className="w-full border border-gray-300 rounded-md p-2"
               id="notes"
               placeholder="Notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             ></textarea>
           </div>
-          <button type="submit">Submit</button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            type="submit"
+          >
+            Submit
+          </button>
         </form>
       </div>
       {/* <ul>
@@ -135,19 +155,16 @@ if (editingApplicationId){
           </li>
         ))}
       </ul> */}
-      <hr /> {/* A simple line to separate the form from the list */}
-      <h2>My Applications</h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <hr className="my-8" />{" "}
+      {/* A simple line to separate the form from the list */}
+      <h2 className="text-2xl font-bold mb-4">My Applications</h2>
+      <div className="flex flex-col gap-2">
         {applications.map((app) => (
           <div
             key={app.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              borderRadius: "8px",
-            }}
+            className="border border-gray-300 rounded-md p-4 bg-white"
           >
-            <h3>{app.company}</h3>
+            <h3 className="text-lg font-bold mb-2">{app.company}</h3>
             <p>
               <strong>Position: </strong>
               {app.position}
@@ -164,11 +181,20 @@ if (editingApplicationId){
               <strong>Notes: </strong>
               {app.notes}
             </p>
-           
 
             {/* <button onClick={() => setApplications(applications.filter( a => a.id !== app.id))}>Delete</button> */}
-          <button onClick={() => handleDelete(app.id)}>Delete</button>
-          <button onClick={() => handleEditClick(app)}>Edit</button>
+            <button
+              onClick={() => handleDelete(app.id)}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-3 mb-3 mt-3"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => handleEditClick(app)}
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Edit
+            </button>
           </div>
         ))}
       </div>
